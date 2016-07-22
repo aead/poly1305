@@ -56,20 +56,20 @@
 	ADCQ R14, h1; \
 	ADCQ $0, h2
 
-DATA Poly1305Mask<>+0x00(SB)/8, $0x0FFFFFFC0FFFFFFF
-DATA Poly1305Mask<>+0x08(SB)/8, $0x0FFFFFFC0FFFFFFC
-GLOBL Poly1305Mask<>(SB), RODATA, $16
+DATA poly1305Mask<>+0x00(SB)/8, $0x0FFFFFFC0FFFFFFF
+DATA poly1305Mask<>+0x08(SB)/8, $0x0FFFFFFC0FFFFFFC
+GLOBL poly1305Mask<>(SB), RODATA, $16
 
 // func initialize(state *[7]uint64, key *[32]byte)
 TEXT ·initialize(SB),$0-16
 	MOVQ state+0(FP), DI
 	MOVQ key+8(FP), SI
 
-	BYTE $0xf3; BYTE $0x0f; BYTE $0x6f; BYTE $0x06				// MOVDQU 0(SI), X0
-	BYTE $0xf3; BYTE $0x0f; BYTE $0x6f; BYTE $0x4e; BYTE $0x10	// MOVDQU 16(SI), X1
-	PAND Poly1305Mask<>(SB), X0
-	BYTE $0xf3; BYTE $0x0f; BYTE $0x7f; BYTE $0x47; BYTE $0x18	// MOVDQU X0, 24(DI)
-	BYTE $0xf3; BYTE $0x0f; BYTE $0x7f; BYTE $0x4f; BYTE $0x28	// MOVDQU X1, 40(DI)
+	MOVOU 0(SI), X0
+	MOVOU 16(SI), X1
+	PAND poly1305Mask<>(SB), X0
+	MOVOU X0, 24(DI)
+	MOVOU X1, 40(DI)
 	RET
 
 // func finalize(tag *[TagSize]byte, state *[7]uint64)
