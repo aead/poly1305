@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - 1.5.3
+  - 1.5.4
+  - 1.6
+  - 1.7rc5
+
+env:
+  - TRAVIS_GOARCH=amd64
+  - TRAVIS_GOARCH=386 
+
+before_install:
+  - export GOARCH=$TRAVIS_GOARCH
+
+branches:
+  only:
+  - master
