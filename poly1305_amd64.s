@@ -34,10 +34,10 @@
 	IMULQ h2, t3; \
 	MOVQ r1, AX; \
 	MULQ h1; \
-	ADDQ h0, t2; \
-	ADCQ $0, DX; \
 	ADDQ AX, t2; \
 	ADCQ DX, t3; \
+	ADDQ h0, t2; \
+	ADCQ $0, t3; \
 					\
 	MOVQ t0, h0; \
 	MOVQ t1, h1; \
