@@ -30,22 +30,20 @@
 	ADDQ AX, t1; \
 	ADCQ $0, DX; \
 	MOVQ DX, h0; \
+	MOVQ r1, t3; \
+	IMULQ h2, t3; \
 	MOVQ r1, AX; \
 	MULQ h1; \
 	ADDQ h0, t2; \
 	ADCQ $0, DX; \
 	ADDQ AX, t2; \
-	ADCQ $0, DX; \
-	MOVQ r1, t3; \
-	IMULQ h2, t3; \
-	ADDQ DX, t3; \
+	ADCQ DX, t3; \
 					\
 	MOVQ t0, h0; \
 	MOVQ t1, h1; \
 	MOVQ t2, h2; \
 	ANDQ $3, h2; \
 	MOVQ t2, t0; \
-	MOVQ t3, t1; \
 	ANDQ $0XFFFFFFFFFFFFFFFC, t0; \
 	ADDQ t0, h0; \
 	ADCQ t3, h1; \
