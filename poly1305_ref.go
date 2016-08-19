@@ -48,7 +48,7 @@ func New(key *[32]byte) *Hash {
 }
 
 // Hash implements a Poly1305 writer interface.
-// Poly1305 cannot used like common hash.Hash implementations,
+// Poly1305 cannot be used like common hash.Hash implementations,
 // beause of using a Poly1305 key twice breaks its security.
 // So poly1305.Hash does not support some kind of reset.
 type Hash struct {
