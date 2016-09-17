@@ -9,8 +9,8 @@
 #define POLY1305_ADD(msg, h0, h1, h2) \
 	ADDQ 0(msg), h0; \
 	ADCQ 8(msg), h1; \
-	LEAQ 16(msg), msg; \
-	ADCQ $1,h2
+	ADCQ $1,h2; \
+	LEAQ 16(msg), msg
 	
 #define POLY1305_MUL(h0, h1, h2, r0, r1, t0, t1, t2, t3) \
 	MOVQ r0, AX; \
@@ -54,6 +54,41 @@
 	ADCQ t3, h1; \
 	ADCQ $0, h2
 
+// Use BMI2 instruction MULXQ to reduce MOVQs
+// Only available with go1.7 and the supporting CPU
+#define POLY1305_MUL_BMI2(h0, h1, h2, r0, r1, t0, t1, t2, t3, t4) \
+	MOVQ r0, DX; \
+	MULXQ h0, t0, t1; \
+	MULXQ h1, t3, t2; \
+	IMULQ h2, DX; \
+	ADDQ t3, t1; \
+	ADCQ DX, t2; \
+    				\
+    MOVQ r1, DX; \
+	MULXQ h0, t3, t4; \
+	ADDQ t3, t1; \
+	ADCQ t4, t2; \
+	MULXQ h1, t3, t4; \
+	IMULQ h2, DX; \
+	ADDQ t3, t2; \
+	ADCQ t4, DX; \
+	ADCQ $0, DX; \
+					\
+	MOVQ t0, h0; \
+	MOVQ t1, h1; \
+	MOVQ t2, h2; \
+	ANDQ $3, h2; \
+	MOVQ t2, t0; \
+	ANDQ $0XFFFFFFFFFFFFFFFC, t0; \
+	ADDQ t0, h0; \
+	ADCQ DX, h1; \
+	ADCQ $0, h2; \
+	SHRQ $2, DX, t2; \
+	SHRQ $2, DX; \
+	ADDQ t2, h0; \
+	ADCQ DX, h1; \
+	ADCQ $0, h2
+
 DATA poly1305Mask<>+0x00(SB)/8, $0x0FFFFFFC0FFFFFFF
 DATA poly1305Mask<>+0x08(SB)/8, $0x0FFFFFFC0FFFFFFC
 GLOBL poly1305Mask<>(SB), RODATA, $16
@@ -65,7 +100,8 @@ TEXT ·initialize(SB),$0-16
 
 	MOVOU 0(SI), X0
 	MOVOU 16(SI), X1
-	PAND poly1305Mask<>(SB), X0
+	MOVOU poly1305Mask<>(SB), X2
+	PAND X2, X0
 	MOVOU X0, 24(DI)
 	MOVOU X1, 40(DI)
 	RET
