@@ -103,12 +103,12 @@ func TestVerify(t *testing.T) {
 
 func BenchmarkSum_8(b *testing.B)             { benchmarkSum(b, 8, false) }
 func BenchmarkSumUnaligned_8(b *testing.B)    { benchmarkSum(b, 8, true) }
-func BenchmarkSum_4K(b *testing.B)            { benchmarkSum(b, 4*1024, false) }
-func BenchmarkSumUnaligned_4K(b *testing.B)   { benchmarkSum(b, 4*1024, true) }
+func BenchmarkSum_1K(b *testing.B)            { benchmarkSum(b, 1024, false) }
+func BenchmarkSumUnaligned_1K(b *testing.B)   { benchmarkSum(b, 1024, true) }
 func BenchmarkWrite_8(b *testing.B)           { benchmarkWrite(b, 8, false) }
 func BenchmarkWriteUnaligned_8(b *testing.B)  { benchmarkWrite(b, 8, true) }
-func BenchmarkWrite_4K(b *testing.B)          { benchmarkWrite(b, 4*1024, false) }
-func BenchmarkWriteUnaligned_4K(b *testing.B) { benchmarkWrite(b, 4*1024, true) }
+func BenchmarkWrite_1K(b *testing.B)          { benchmarkWrite(b, 1024, false) }
+func BenchmarkWriteUnaligned_1K(b *testing.B) { benchmarkWrite(b, 1024, true) }
 
 func benchmarkSum(b *testing.B, size int, unalign bool) {
 	var key [32]byte
