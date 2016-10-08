@@ -6,7 +6,7 @@ Poly1305 is a cryptographic message authentication code (MAC) created by Daniel 
 It can be used to verify the data integrity and the authenticity of a message and has been
 standardized in [RFC 7539](https://tools.ietf.org/html/rfc7539 "RFC 7539").
 
-This code is now stable (reached v1.0) and can be used in productive environments.
+This code is now stable and can be used in productive environments.
 Backward compatibility is now guaranteed.
 
 ### Requirements
@@ -14,7 +14,7 @@ Following Go versions are supported:
  - 1.5.3
  - 1.5.4
  - 1.6.x
- - 1.7
+ - 1.7.x
 
 Notice, that the code is only tested on amd64 and x86.
 
