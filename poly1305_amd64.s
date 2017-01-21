@@ -103,7 +103,7 @@ TEXT ·initialize(SB), $0-16
 	MOVOU 0(SI), X0
 	MOVOU 16(SI), X1
 	MOVOU poly1305Mask<>(SB), X2
-	PAND  X2, X0
+	PAND  X2, X0 
 	MOVOU X0, 24(DI)
 	MOVOU X1, 40(DI)
 	RET
@@ -130,8 +130,8 @@ TEXT ·finalize(SB), $0-16
 	MOVQ BX, 8(DI)
 	RET
 
-// func core(state *[7]uint64, msg []byte)
-TEXT ·core(SB), $0-32
+// func update(state *[7]uint64, msg []byte)
+TEXT ·update(SB), $0-32
 	MOVQ state+0(FP), DI
 	MOVQ msg_base+8(FP), SI
 	MOVQ msg_len+16(FP), R15

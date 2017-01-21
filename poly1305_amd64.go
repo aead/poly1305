@@ -6,6 +6,15 @@
 
 package poly1305
 
+//go:noescape
+func initialize(state *[7]uint64, key *[32]byte)
+
+//go:noescape
+func update(state *[7]uint64, msg []byte)
+
+//go:noescape
+func finalize(tag *[TagSize]byte, state *[7]uint64)
+
 // Sum generates an authenticator for msg using a one-time key and puts the
 // 16-byte result into out. Authenticating two different messages with the same
 // key allows an attacker to forge messages at will.
@@ -16,7 +25,7 @@ func Sum(out *[TagSize]byte, msg []byte, key *[32]byte) {
 
 	var state [7]uint64 // := uint64{ h0, h1, h2, r0, r1, pad0, pad1 }
 	initialize(&state, key)
-	core(&state, msg)
+	update(&state, msg)
 	finalize(out, &state)
 }
 
@@ -30,7 +39,7 @@ func New(key *[32]byte) *Hash {
 
 // Hash implements a Poly1305 writer interface.
 // Poly1305 cannot be used like common hash.Hash implementations,
-// beause of using a Poly1305 key twice breaks its security.
+// because of using a poly1305 key twice breaks its security.
 // So poly1305.Hash does not support some kind of reset.
 type Hash struct {
 	state [7]uint64 // := uint64{ h0, h1, h2, r0, r1, pad0, pad1 }
@@ -53,19 +62,18 @@ func (p *Hash) Write(msg []byte) (int, error) {
 
 	if p.off > 0 {
 		dif := TagSize - p.off
-		if n > dif {
-			p.off += copy(p.buf[p.off:], msg[:dif])
-			msg = msg[dif:]
-			core(&(p.state), p.buf[:])
-			p.off = 0
-		} else {
+		if n <= dif {
 			p.off += copy(p.buf[p.off:], msg)
 			return n, nil
 		}
+		copy(p.buf[p.off:], msg[:dif])
+		update(&(p.state), p.buf[:])
+		msg = msg[dif:]
+		p.off = 0
 	}
 
 	if nn := len(msg) & (^(TagSize - 1)); nn > 0 {
-		core(&(p.state), msg[:nn])
+		update(&(p.state), msg[:nn])
 		msg = msg[nn:]
 	}
 
@@ -83,18 +91,9 @@ func (p *Hash) Sum(out *[TagSize]byte) {
 	state := p.state
 
 	if p.off > 0 {
-		core(&state, p.buf[:p.off])
+		update(&state, p.buf[:p.off])
 	}
 
 	finalize(out, &state)
 	p.done = true
 }
-
-//go:noescape
-func initialize(state *[7]uint64, key *[32]byte)
-
-//go:noescape
-func core(state *[7]uint64, msg []byte)
-
-//go:noescape
-func finalize(tag *[TagSize]byte, state *[7]uint64)
