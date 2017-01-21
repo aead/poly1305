@@ -6,35 +6,49 @@ Poly1305 is a cryptographic message authentication code (MAC) created by Daniel 
 It can be used to verify the data integrity and the authenticity of a message and has been
 standardized in [RFC 7539](https://tools.ietf.org/html/rfc7539 "RFC 7539").
 
-This code is now stable and can be used in productive environments.
-Backward compatibility is now guaranteed.
-
 ### Requirements
-Following Go versions are supported:
- - 1.5.3
- - 1.5.4
- - 1.6.x
- - 1.7.x
-
-Notice, that the code is only tested on amd64 and x86.
+Go version >= 1.5.3
 
 ### Installation
 Install in your GOPATH: `go get -u github.com/aead/poly1305`
 
 ### Performance
-Benchmarks are run on a Intel i7-6500U (Sky Lake) on linux/amd64 with Go 1.7
+The amd64 implementation of x/crypto/poly305 is based on this implementation - so
+the performance should more or less be equal on amd64.
+
+The reference (non-amd64) implementation is submitted to the go-team and (if it passes the review process)
+will replace their ref. implementation.
+
+The most significant performance improvement (compared to the /x/crypto/poly1305 impl.) can be observed,
+if you compute the MAC over message chunks. For x/crypto/poly1305 you have to build a buffer, large enough
+to hold the complete message. In some situations this leads to many memory allocations.
+In these cases, the poly1305.Hash (impl. io.Writer) will lead to significant performance improvements.
+
+Notice that, on arm machines the /x/crypto/poly1305 implementation may be faster, because
+of an optimized assembly version.
+
+amd64 (go1.7.4):
 ```
-On amd64: (The 'old' one is the implementation at golang.org/x/crypto/poly1305)
+name                 speed
+Sum_64-4             1.68GB/s ± 0%
+SumUnaligned_64-4    1.68GB/s ± 0%
+Sum_1K-4             2.50GB/s ± 0%
+SumUnaligned_1K-4    2.50GB/s ± 0%
+Write_64-4           1.96GB/s ± 0%
+WriteUnaligned_64-4  1.96GB/s ± 0%
+Write_1K-4           2.53GB/s ± 0%
+WriteUnaligned_1K-4  2.53GB/s ± 0%
+```
 
-name           old time/op    new time/op    delta
-64-4             96.5ns ± 1%    38.1ns ± 0%   -60.52%  (p=0.000 n=9+9)
-1K-4              906ns ± 0%     399ns ± 0%   -55.98%  (p=0.000 n=9+9)
-64Unaligned-4    96.1ns ± 0%    37.8ns ± 0%   -60.65%  (p=0.000 n=9+9)
-1KUnaligned-4     910ns ± 1%     399ns ± 0%   -56.10%  (p=0.000 n=9+9)
-
-name           old speed      new speed      delta
-64-4            663MB/s ± 1%  1678MB/s ± 0%  +153.03%  (p=0.000 n=9+9)
-1K-4           1.13GB/s ± 0%  2.56GB/s ± 0%  +126.89%  (p=0.000 n=9+9)
-64Unaligned-4   666MB/s ± 0%  1693MB/s ± 0%  +154.19%  (p=0.000 n=9+9)
-1KUnaligned-4  1.13GB/s ± 1%  2.56GB/s ± 0%  +127.44%  (p=0.000 n=9+9)
+386 (go1.7.4):
+```
+name                 speed
+Sum_64-2             165MB/s ± 0%
+SumUnaligned_64-2    165MB/s ± 0%
+Sum_1K-2             247MB/s ± 0%
+SumUnaligned_1K-2    247MB/s ± 0%
+Write_64-2           228MB/s ± 0%
+WriteUnaligned_64-2  228MB/s ± 0%
+Write_1K-2           256MB/s ± 0%
+WriteUnaligned_1K-2  256MB/s ± 0%
 ```
