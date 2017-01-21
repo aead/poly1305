@@ -56,15 +56,12 @@ var vectors = []struct {
 	},
 }
 
-func testVector(t *testing.T, unaligned bool) {
+func TestVectors(t *testing.T) {
 	var out [16]byte
 	var key [32]byte
 
 	for i, v := range vectors {
 		msg := v.msg
-		if unaligned {
-			msg = unalignBytes(msg)
-		}
 		copy(key[:], v.key)
 
 		Sum(&out, msg, &key)
@@ -86,9 +83,6 @@ func testVector(t *testing.T, unaligned bool) {
 		}
 	}
 }
-
-func TestVectors(t *testing.T)          { testVector(t, false) }
-func TestVectorsUnaligned(t *testing.T) { testVector(t, true) }
 
 func TestWriteAfterSum(t *testing.T) {
 	var sum [TagSize]byte
