@@ -2,19 +2,14 @@
 // Use of this source code is governed by a license that can be
 // found in the LICENSE file.
 
-// Package poly1305 implements Poly1305 one-time message authentication code as
-// specified in http://cr.yp.to/mac/poly1305-20050329.pdf.
+// Package poly1305 implements Poly1305 one-time message authentication code
+// defined in RFC 7539..
 //
 // Poly1305 is a fast, one-time authentication function. It is infeasible for an
 // attacker to generate an authenticator for a message without the key.
 // However, a key must only be used for a single message. Authenticating two
 // different messages with the same key allows an attacker to forge
 // authenticators for other messages with the same key.
-//
-// Poly1305 was originally coupled with AES in order to make Poly1305-AES.
-// AES was used with a fixed key in order to generate one-time keys from an
-// nonce. However, in this package AES isn't used and the one-time key is
-// specified directly.
 package poly1305 // import "github.com/aead/poly1305"
 
 import (

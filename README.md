@@ -2,53 +2,39 @@
 
 ## The poly1305 message authentication code
 
-Poly1305 is a cryptographic message authentication code (MAC) created by Daniel J. Bernstein. 
-It can be used to verify the data integrity and the authenticity of a message and has been
-standardized in [RFC 7539](https://tools.ietf.org/html/rfc7539 "RFC 7539").
-
-### Requirements
-Go version >= 1.5.3
+Poly1305 is a fast, one-time authentication function created by Daniel J. Bernstein.  
+It is infeasible for an attacker to generate an authenticator for a message without the key.  
+However, a key must only be used for a single message. Authenticating two different messages  
+with the same key allows an attacker to forge authenticators for other messages with the same key.
 
 ### Installation
 Install in your GOPATH: `go get -u github.com/aead/poly1305`
 
+### Requirements
+All Go versions >= 1.5.3 are supported.
+
 ### Performance
-The amd64 implementation of x/crypto/poly305 is based on this implementation - so
-the performance should more or less be equal on amd64.
 
-The reference (non-amd64) implementation is submitted to the go-team and (if it passes the review process)
-will replace their ref. implementation.
-
-The most significant performance improvement (compared to the /x/crypto/poly1305 impl.) can be observed,
-if you compute the MAC over message chunks. For x/crypto/poly1305 you have to build a buffer, large enough
-to hold the complete message. In some situations this leads to many memory allocations.
-In these cases, the poly1305.Hash (impl. io.Writer) will lead to significant performance improvements.
-
-Notice that, on arm machines the /x/crypto/poly1305 implementation may be faster, because
-of an optimized assembly version.
-
-amd64 (go1.7.4):
+#### AMD64
+Hardware: Intel i7-6500U 2.50GHz x 2  
+System: Linux Ubuntu 16.04 - kernel: 4.4.0-62-generic  
+Go version: 1.8.0  
 ```
-name                 speed
-Sum_64-4             1.68GB/s ± 0%
-SumUnaligned_64-4    1.68GB/s ± 0%
-Sum_1K-4             2.50GB/s ± 0%
-SumUnaligned_1K-4    2.50GB/s ± 0%
-Write_64-4           1.96GB/s ± 0%
-WriteUnaligned_64-4  1.96GB/s ± 0%
-Write_1K-4           2.53GB/s ± 0%
-WriteUnaligned_1K-4  2.53GB/s ± 0%
+name                 speed              cpb
+Sum_64-4             1.67GB/s ± 0%      1.39
+Sum_1K-4             2.48GB/s ± 0%      0.93
+Write_64-4           1.95GB/s ± 0%      1.19
+Write_1K-4           2.51GB/s ± 1%      0.92
 ```
 
-386 (go1.7.4):
+#### 386
+Hardware: Intel i7-6500U 2.50GHz x 2  
+System: Linux Ubuntu 16.04 - kernel: 4.4.0-62-generic  
+Go version: 1.8.0  
 ```
-name                 speed
-Sum_64-2             165MB/s ± 0%
-SumUnaligned_64-2    165MB/s ± 0%
-Sum_1K-2             247MB/s ± 0%
-SumUnaligned_1K-2    247MB/s ± 0%
-Write_64-2           228MB/s ± 0%
-WriteUnaligned_64-2  228MB/s ± 0%
-Write_1K-2           256MB/s ± 0%
-WriteUnaligned_1K-2  256MB/s ± 0%
+name                 speed              cpb
+Sum_64-4             163MB/s ± 1%      14.62
+Sum_1K-4             234MB/s ± 8%      10.18
+Write_64-4           222MB/s ± 2%      10.73
+Write_1K-4           250MB/s ± 3%       9.53
 ```
