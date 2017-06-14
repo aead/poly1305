@@ -100,8 +100,8 @@ TEXT ·update(SB), $0-32
 	MOVQ 32(DI), R12 // h1
 
 	MOVQ ·useBMI2(SB), AX
-	TESTQ AX, AX
-	JNE BMI2
+	CMPQ AX, $1
+	JE BMI2
 
 	CMPQ R15, $16
 	JB   BYTES_BETWEEN_0_AND_15
@@ -183,8 +183,8 @@ DONE:
 // func supportsBMI2() bool
 TEXT ·supportsBMI2(SB), 4, $0-1
     MOVQ runtime·support_avx2(SB), BX
-    TESTQ BX, BX
-	JE NO_AVX2
+    CMPQ BX, $1
+	JNE NO_AVX2
 
 	MOVL $7, AX
 	XORQ CX, CX
