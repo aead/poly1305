@@ -42,7 +42,7 @@ func Sum(out *[TagSize]byte, msg []byte, key *[32]byte) {
 }
 
 // New returns a hash.Hash computing the poly1305 sum.
-// Notice that Poly1305 is inseure if one key is used twice.
+// Notice that Poly1305 is insecure if one key is used twice.
 func New(key *[32]byte) *Hash {
 	p := new(Hash)
 	initialize(&(p.r), &(p.s), key)
@@ -97,7 +97,7 @@ func (p *Hash) Write(msg []byte) (int, error) {
 	return n, nil
 }
 
-// Sum computes the Poly1305 checksum of the prevouisly
+// Sum computes the Poly1305 checksum of the previously
 // processed data and writes it to out. It is legal to
 // call this function more than one time.
 func (p *Hash) Sum(out *[TagSize]byte) {
