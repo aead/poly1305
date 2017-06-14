@@ -46,19 +46,3 @@ TEXT ·finalize(SB), $0-16
 	MOVQ AX, 0(DI)
 	MOVQ BX, 8(DI)
 	RET
-
-// func supportsBMI2() bool
-TEXT ·supportsBMI2(SB), 4, $0-1
-    MOVQ runtime·support_avx2(SB), BX
-    TESTQ BX, BX
-	JE NO_AVX2
-
-	MOVL $7, AX
-	XORQ CX, CX
-	CPUID
-	SHRL $8, BX
-	ANDL $1, BX
-
-NO_AVX2:
-    MOVB BX, ret+0(FP)
-    RET

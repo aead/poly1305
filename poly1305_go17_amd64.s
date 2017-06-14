@@ -179,3 +179,19 @@ DONE:
 	MOVQ R9, 8(DI)
 	MOVQ R10, 16(DI)
 	RET
+
+// func supportsBMI2() bool
+TEXT ·supportsBMI2(SB), 4, $0-1
+    MOVQ runtime·support_avx2(SB), BX
+    TESTQ BX, BX
+	JE NO_AVX2
+
+	MOVL $7, AX
+	XORQ CX, CX
+	CPUID
+	SHRL $8, BX
+	ANDL $1, BX
+
+NO_AVX2:
+    MOVB BX, ret+0(FP)
+    RET

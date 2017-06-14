@@ -106,3 +106,9 @@ DONE:
 	MOVQ R9, 8(DI)
 	MOVQ R10, 16(DI)
 	RET
+
+// func supportsBMI2() bool
+TEXT ·supportsBMI2(SB), 4, $0-1
+    XORQ AX, AX
+    MOVB AX, ret+0(FP)
+    RET
