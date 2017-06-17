@@ -13,39 +13,39 @@ const (
 	finalBlock = uint32(0)
 )
 
-// Sum generates an authenticator for msg using a one-time key and puts the
-// 16-byte result into out. Authenticating two different messages with the same
-// key allows an attacker to forge messages at will.
-func Sum(out *[TagSize]byte, msg []byte, key *[32]byte) {
+// Sum generates an authenticator for msg using a one-time key and returns the
+// 16-byte result. Authenticating two different messages with the same key allows
+// an attacker to forge messages at will.
+func Sum(msg []byte, key [32]byte) [TagSize]byte {
 	var (
 		h, r  [5]uint32
 		s     [4]uint32
 		block [TagSize]byte
 		off   int
 	)
+	var out [TagSize]byte
 
-	initialize(&r, &s, key)
+	initialize(&r, &s, &key)
 
 	n := len(msg) & (^(TagSize - 1))
 	if n > 0 {
 		update(msg[:n], msgBlock, &h, &r)
 		msg = msg[n:]
 	}
-
 	if len(msg) > 0 {
 		off += copy(block[:], msg)
 		block[off] = 1
 		update(block[:], finalBlock, &h, &r)
 	}
-
-	finalize(out, &h, &s)
+	finalize(&out, &h, &s)
+	return out
 }
 
 // New returns a hash.Hash computing the poly1305 sum.
 // Notice that Poly1305 is insecure if one key is used twice.
-func New(key *[32]byte) *Hash {
+func New(key [32]byte) *Hash {
 	p := new(Hash)
-	initialize(&(p.r), &(p.s), key)
+	initialize(&(p.r), &(p.s), &key)
 	return p
 }
 
@@ -62,11 +62,13 @@ type Hash struct {
 	done bool
 }
 
+// Size returns the number of bytes Sum will append.
+func (p *Hash) Size() int { return TagSize }
+
 // Write adds more data to the running Poly1305 hash.
-// This function returns an non-nil error, if a call
-// to Write happens after the hash's Sum function was
-// called. So it's not possible to compute the checksum
-// and than add more data.
+// This function should return a non-nil error if a call
+// to Write happens after a call to Sum. So it is not possible
+// to compute the checksum and than add more data.
 func (p *Hash) Write(msg []byte) (int, error) {
 	if p.done {
 		return 0, errWriteAfterSum
@@ -97,10 +99,11 @@ func (p *Hash) Write(msg []byte) (int, error) {
 	return n, nil
 }
 
-// Sum computes the Poly1305 checksum of the previously
-// processed data and writes it to out. It is legal to
-// call this function more than one time.
-func (p *Hash) Sum(out *[TagSize]byte) {
+// Sum appends the Pol1305 hash of the previously
+// processed data to b and returns the resulting slice.
+// It is safe to call this function multiple times.
+func (p *Hash) Sum(b []byte) []byte {
+	var out [TagSize]byte
 	h := p.h
 
 	if p.off > 0 {
@@ -111,8 +114,9 @@ func (p *Hash) Sum(out *[TagSize]byte) {
 		update(buf[:], finalBlock, &h, &(p.r))
 	}
 
-	finalize(out, &h, &(p.s))
+	finalize(&out, &h, &(p.s))
 	p.done = true
+	return append(b, out[:]...)
 }
 
 func initialize(r *[5]uint32, s *[4]uint32, key *[32]byte) {

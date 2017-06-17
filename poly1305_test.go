@@ -57,44 +57,41 @@ var vectors = []struct {
 }
 
 func TestVectors(t *testing.T) {
-	var out [16]byte
 	var key [32]byte
 
 	for i, v := range vectors {
 		msg := v.msg
 		copy(key[:], v.key)
 
-		Sum(&out, msg, &key)
+		out := Sum(msg, key)
 		if !bytes.Equal(out[:], v.tag) {
 			t.Errorf("Test vector %d : got: %x expected: %x", i, out[:], v.tag)
 		}
 
-		h := New(&key)
+		h := New(key)
 		h.Write(msg)
-		h.Sum(&out)
-		if !bytes.Equal(out[:], v.tag) {
-			t.Errorf("Test vector %d : got: %x expected: %x", i, out[:], v.tag)
+		tag := h.Sum(nil)
+		if !bytes.Equal(tag[:], v.tag) {
+			t.Errorf("Test vector %d : got: %x expected: %x", i, tag[:], v.tag)
 		}
 
 		var mac [16]byte
 		copy(mac[:], v.tag)
-		if !Verify(&mac, msg, &key) {
+		if !Verify(&mac, msg, key) {
 			t.Errorf("Test vector %d : Verify failed", i)
 		}
 	}
 }
 
 func TestWriteAfterSum(t *testing.T) {
-	var sum [TagSize]byte
-
 	msg := make([]byte, 64)
 	for i := range msg {
-		h := New(new([32]byte))
+		h := New([32]byte{})
 
 		if _, err := h.Write(msg[:i]); err != nil {
 			t.Fatalf("Iteration %d: poly1305.Hash returned unexpected error: %s", i, err)
 		}
-		h.Sum(&sum)
+		h.Sum(nil)
 		if _, err := h.Write(nil); err == nil {
 			t.Fatalf("Iteration %d: poly1305.Hash returned no error for write after sum", i)
 		}
@@ -107,7 +104,7 @@ func TestWrite(t *testing.T) {
 		key[i] = byte(i)
 	}
 
-	h := New(&key)
+	h := New(key)
 
 	var msg1 []byte
 	msg0 := make([]byte, 64)
@@ -116,11 +113,10 @@ func TestWrite(t *testing.T) {
 		msg1 = append(msg1, msg0[:i]...)
 	}
 
-	var tag0, tag1 [TagSize]byte
-	h.Sum(&tag0)
-	Sum(&tag1, msg1, &key)
+	tag0 := h.Sum(nil)
+	tag1 := Sum(msg1, key)
 
-	if tag0 != tag1 {
+	if !bytes.Equal(tag0[:], tag1[:]) {
 		t.Fatalf("Sum differ from poly1305.Sum\n Sum: %s \n poly1305.Sum: %s", hex.EncodeToString(tag0[:]), hex.EncodeToString(tag1[:]))
 	}
 }
@@ -138,7 +134,6 @@ func BenchmarkWriteUnaligned_1K(b *testing.B) { benchmarkWrite(b, 1024, true) }
 
 func benchmarkSum(b *testing.B, size int, unalign bool) {
 	var key [32]byte
-	var tag [16]byte
 
 	msg := make([]byte, size)
 	if unalign {
@@ -148,13 +143,13 @@ func benchmarkSum(b *testing.B, size int, unalign bool) {
 	b.SetBytes(int64(size))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Sum(&tag, msg, &key)
+		Sum(msg, key)
 	}
 }
 
 func benchmarkWrite(b *testing.B, size int, unalign bool) {
 	var key [32]byte
-	h := New(&key)
+	h := New(key)
 
 	msg := make([]byte, size)
 	if unalign {

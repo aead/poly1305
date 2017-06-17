@@ -24,8 +24,7 @@ var errWriteAfterSum = errors.New("checksum already computed - adding more data 
 
 // Verify returns true if and only if the mac is a valid authenticator
 // for msg with the given key.
-func Verify(mac *[TagSize]byte, msg []byte, key *[32]byte) bool {
-	var sum [TagSize]byte
-	Sum(&sum, msg, key)
+func Verify(mac *[TagSize]byte, msg []byte, key [32]byte) bool {
+	sum := Sum(msg, key)
 	return subtle.ConstantTimeCompare(sum[:], mac[:]) == 1
 }
