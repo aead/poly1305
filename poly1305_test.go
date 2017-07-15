@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"testing"
-	"unsafe"
 )
 
 func fromHex(s string) []byte {
@@ -123,22 +122,19 @@ func TestWrite(t *testing.T) {
 
 // Benchmarks
 
-func BenchmarkSum_64(b *testing.B)            { benchmarkSum(b, 64, false) }
-func BenchmarkSumUnaligned_64(b *testing.B)   { benchmarkSum(b, 64, true) }
-func BenchmarkSum_1K(b *testing.B)            { benchmarkSum(b, 1024, false) }
-func BenchmarkSumUnaligned_1K(b *testing.B)   { benchmarkSum(b, 1024, true) }
-func BenchmarkWrite_64(b *testing.B)          { benchmarkWrite(b, 64, false) }
-func BenchmarkWriteUnaligned_64(b *testing.B) { benchmarkWrite(b, 64, true) }
-func BenchmarkWrite_1K(b *testing.B)          { benchmarkWrite(b, 1024, false) }
-func BenchmarkWriteUnaligned_1K(b *testing.B) { benchmarkWrite(b, 1024, true) }
+func BenchmarkSum_64(b *testing.B)    { benchmarkSum(b, 64) }
+func BenchmarkSum_256(b *testing.B)   { benchmarkSum(b, 256) }
+func BenchmarkSum_1K(b *testing.B)    { benchmarkSum(b, 1024) }
+func BenchmarkSum_8K(b *testing.B)    { benchmarkSum(b, 8*1024) }
+func BenchmarkWrite_64(b *testing.B)  { benchmarkWrite(b, 64) }
+func BenchmarkWrite_256(b *testing.B) { benchmarkWrite(b, 256) }
+func BenchmarkWrite_1K(b *testing.B)  { benchmarkWrite(b, 1024) }
+func BenchmarkWrite_8K(b *testing.B)  { benchmarkWrite(b, 8*1024) }
 
-func benchmarkSum(b *testing.B, size int, unalign bool) {
+func benchmarkSum(b *testing.B, size int) {
 	var key [32]byte
 
 	msg := make([]byte, size)
-	if unalign {
-		msg = unalignBytes(msg)
-	}
 
 	b.SetBytes(int64(size))
 	b.ResetTimer()
@@ -147,29 +143,15 @@ func benchmarkSum(b *testing.B, size int, unalign bool) {
 	}
 }
 
-func benchmarkWrite(b *testing.B, size int, unalign bool) {
+func benchmarkWrite(b *testing.B, size int) {
 	var key [32]byte
 	h := New(key)
 
 	msg := make([]byte, size)
-	if unalign {
-		msg = unalignBytes(msg)
-	}
 
 	b.SetBytes(int64(size))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		h.Write(msg)
 	}
-}
-
-func unalignBytes(in []byte) []byte {
-	out := make([]byte, len(in)+1)
-	if uintptr(unsafe.Pointer(&out[0]))&(unsafe.Alignof(uint32(0))-1) == 0 {
-		out = out[1:]
-	} else {
-		out = out[:len(in)]
-	}
-	copy(out, in)
-	return out
 }
