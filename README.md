@@ -11,7 +11,7 @@ with the same key allows an attacker to forge authenticators for other messages 
 Install in your GOPATH: `go get -u github.com/aead/poly1305`
 
 ### Requirements
-All Go versions >= 1.5.3 are supported.
+All Go versions >= 1.7 are supported.
 
 ### Performance
 
@@ -19,22 +19,28 @@ All Go versions >= 1.5.3 are supported.
 Hardware: Intel i7-6500U 2.50GHz x 2  
 System: Linux Ubuntu 16.04 - kernel: 4.4.0-62-generic  
 Go version: 1.8.0  
+
+**AVX2**  
 ```
 name                 speed              cpb
-Sum_64-4             1.67GB/s ± 0%      1.39
-Sum_1K-4             2.48GB/s ± 0%      0.93
-Write_64-4           1.95GB/s ± 0%      1.19
-Write_1K-4           2.51GB/s ± 1%      0.92
+Sum_64-4             1.60GB/s ± 0%      1.39
+Sum_256-4            2.32GB/s ± 1%      1.00 
+Sum_1K-4             3.61GB/s ± 1%      0.65 
+Sum_8K-4             4.20GB/s ± 1%      0.55
+Write_64-4           2.04GB/s ± 0%      1.14
+Write_256-4          3.50GB/s ± 2%      0.67
+Write_1K-4           4.08GB/s ± 2%      0.57
+Write_8K-4           4.25GB/s ± 2%      0.55
 ```
 
-#### 386
-Hardware: Intel i7-6500U 2.50GHz x 2  
-System: Linux Ubuntu 16.04 - kernel: 4.4.0-62-generic  
-Go version: 1.8.0  
 ```
 name                 speed              cpb
-Sum_64-4             163MB/s ± 1%      14.62
-Sum_1K-4             234MB/s ± 8%      10.18
-Write_64-4           222MB/s ± 2%      10.73
-Write_1K-4           250MB/s ± 3%       9.53
+Sum_64-4             1.60GB/s ± 1%      1.46
+Sum_256-4            2.11GB/s ± 3%      1.10
+Sum_1K-4             2.35GB/s ±13%      0.99
+Sum_8K-4             2.47GB/s ±13%      0.94
+Write_64-4           1.81GB/s ± 5%      1.29
+Write_256-4          2.24GB/s ± 4%      1.04   
+Write_1K-4           2.55GB/s ± 0%      0.91
+Write_8K-4           2.63GB/s ± 0%      0.88
 ```
