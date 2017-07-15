@@ -33,6 +33,8 @@ Write_1K-4           4.08GB/s ± 2%      0.57
 Write_8K-4           4.25GB/s ± 2%      0.55
 ```
 
+**x64**  
+
 ```
 name                 speed              cpb
 Sum_64-4             1.60GB/s ± 1%      1.46
