@@ -11,52 +11,66 @@ DATA ·poly1305Mask<>+0x08(SB)/8, $0x0FFFFFFC0FFFFFFC
 GLOBL ·poly1305Mask<>(SB), RODATA, $16
 
 #define POLY1305_ADD(msg, h0, h1, h2) \
-	ADDQ 0(msg), h0;  \
-	ADCQ 8(msg), h1;  \
-	ADCQ $1, h2;      \
+	ADDQ 0(msg), h0   \
+	ADCQ 8(msg), h1   \
+	ADCQ $1, h2       \
 	LEAQ 16(msg), msg
 
 #define POLY1305_MUL(h0, h1, h2, r0, r1, t0, t1, t2, t3) \
-	MOVQ  r0, AX;                  \
-	MULQ  h0;                      \
-	MOVQ  AX, t0;                  \
-	MOVQ  DX, t1;                  \
-	MOVQ  r0, AX;                  \
-	MULQ  h1;                      \
-	ADDQ  AX, t1;                  \
-	ADCQ  $0, DX;                  \
-	MOVQ  r0, t2;                  \
-	IMULQ h2, t2;                  \
-	ADDQ  DX, t2;                  \
+	MOVQ  r0, AX                   \
+	MULQ  h0                       \
+	MOVQ  AX, t0                   \
+	MOVQ  DX, t1                   \
+	MOVQ  r0, AX                   \
+	MULQ  h1                       \
+	ADDQ  AX, t1                   \
+	ADCQ  $0, DX                   \
+	MOVQ  r0, t2                   \
+	IMULQ h2, t2                   \
+	ADDQ  DX, t2                   \
 	                               \
-	MOVQ  r1, AX;                  \
-	MULQ  h0;                      \
-	ADDQ  AX, t1;                  \
-	ADCQ  $0, DX;                  \
-	MOVQ  DX, h0;                  \
-	MOVQ  r1, t3;                  \
-	IMULQ h2, t3;                  \
-	MOVQ  r1, AX;                  \
-	MULQ  h1;                      \
-	ADDQ  AX, t2;                  \
-	ADCQ  DX, t3;                  \
-	ADDQ  h0, t2;                  \
-	ADCQ  $0, t3;                  \
+	MOVQ  r1, AX                   \
+	MULQ  h0                       \
+	ADDQ  AX, t1                   \
+	ADCQ  $0, DX                   \
+	MOVQ  DX, h0                   \
+	MOVQ  r1, t3                   \
+	IMULQ h2, t3                   \
+	MOVQ  r1, AX                   \
+	MULQ  h1                       \
+	ADDQ  AX, t2                   \
+	ADCQ  DX, t3                   \
+	ADDQ  h0, t2                   \
+	ADCQ  $0, t3                   \
 	                               \
-	MOVQ  t0, h0;                  \
-	MOVQ  t1, h1;                  \
-	MOVQ  t2, h2;                  \
-	ANDQ  $3, h2;                  \
-	MOVQ  t2, t0;                  \
-	ANDQ  $0XFFFFFFFFFFFFFFFC, t0; \
-	ADDQ  t0, h0;                  \
-	ADCQ  t3, h1;                  \
-	ADCQ  $0, h2;                  \
-	SHRQ  $2, t3, t2;              \
-	SHRQ  $2, t3;                  \
-	ADDQ  t2, h0;                  \
-	ADCQ  t3, h1;                  \
+	MOVQ  t0, h0                   \
+	MOVQ  t1, h1                   \
+	MOVQ  t2, h2                   \
+	ANDQ  $3, h2                   \
+	MOVQ  t2, t0                   \
+	ANDQ  $0XFFFFFFFFFFFFFFFC, t0  \
+	ADDQ  t0, h0                   \
+	ADCQ  t3, h1                   \
+	ADCQ  $0, h2                   \
+	SHRQ  $2, t3, t2               \
+	SHRQ  $2, t3                   \
+	ADDQ  t2, h0                   \
+	ADCQ  t3, h1                   \
 	ADCQ  $0, h2
+
+// func initialize(state *[7]uint64, key *[32]byte)
+TEXT ·initialize(SB), $0-16
+	MOVQ state+0(FP), DI
+	MOVQ key+8(FP), SI
+
+	// state[0...7] is initialized with zero
+	MOVOU 0(SI), X0
+	MOVOU 16(SI), X1
+	MOVOU ·poly1305Mask<>(SB), X2
+	PAND  X2, X0
+	MOVOU X0, 24(DI)
+	MOVOU X1, 40(DI)
+	RET
 
 // func update(state *[7]uint64, msg []byte)
 TEXT ·update(SB), $0-32
@@ -109,20 +123,6 @@ DONE:
 	MOVQ R8, 0(DI)
 	MOVQ R9, 8(DI)
 	MOVQ R10, 16(DI)
-	RET
-
-// func initialize(state *[7]uint64, key *[32]byte)
-TEXT ·initialize(SB), $0-16
-	MOVQ state+0(FP), DI
-	MOVQ key+8(FP), SI
-
-	// state[0...7] is initialized with zero
-	MOVOU 0(SI), X0
-	MOVOU 16(SI), X1
-	MOVOU ·poly1305Mask<>(SB), X2
-	PAND  X2, X0
-	MOVOU X0, 24(DI)
-	MOVOU X1, 40(DI)
 	RET
 
 // func finalize(tag *[TagSize]byte, state *[7]uint64)
