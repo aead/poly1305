@@ -56,9 +56,9 @@ var vectors = []struct {
 }
 
 func TestVectors(t *testing.T) {
-	var key [32]byte
-
 	for i, v := range vectors {
+		var key [32]byte
+
 		msg := v.msg
 		copy(key[:], v.key)
 
