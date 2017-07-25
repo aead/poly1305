@@ -133,8 +133,14 @@ func BenchmarkWrite_8K(b *testing.B)  { benchmarkWrite(b, 8*1024) }
 
 func benchmarkSum(b *testing.B, size int) {
 	var key [32]byte
+	for i := range key {
+		key[i] = byte(i << 3)
+	}
 
 	msg := make([]byte, size)
+	for i := range msg {
+		msg[i] = byte(i)
+	}
 
 	b.SetBytes(int64(size))
 	b.ResetTimer()
@@ -145,9 +151,15 @@ func benchmarkSum(b *testing.B, size int) {
 
 func benchmarkWrite(b *testing.B, size int) {
 	var key [32]byte
+	for i := range key {
+		key[i] = byte(i << 3)
+	}
 	h := New(key)
 
 	msg := make([]byte, size)
+	for i := range msg {
+		msg[i] = byte(i)
+	}
 
 	b.SetBytes(int64(size))
 	b.ResetTimer()
