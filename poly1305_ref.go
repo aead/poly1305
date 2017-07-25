@@ -68,7 +68,7 @@ func (p *Hash) Size() int { return TagSize }
 // Write adds more data to the running Poly1305 hash.
 // This function should return a non-nil error if a call
 // to Write happens after a call to Sum. So it is not possible
-// to compute the checksum and than add more data.
+// to compute the checksum and then add more data.
 func (p *Hash) Write(msg []byte) (int, error) {
 	if p.done {
 		return 0, errWriteAfterSum
@@ -77,7 +77,7 @@ func (p *Hash) Write(msg []byte) (int, error) {
 
 	if p.off > 0 {
 		dif := TagSize - p.off
-		if n <= dif {
+		if n < dif {
 			p.off += copy(p.buf[p.off:], msg)
 			return n, nil
 		}
@@ -87,7 +87,7 @@ func (p *Hash) Write(msg []byte) (int, error) {
 		p.off = 0
 	}
 
-	// process full 16-byte blocks
+	// process full multiples of 16-byte blocks
 	if nn := len(msg) & (^(TagSize - 1)); nn > 0 {
 		update(msg[:nn], msgBlock, &(p.h), &(p.r))
 		msg = msg[nn:]
@@ -100,7 +100,7 @@ func (p *Hash) Write(msg []byte) (int, error) {
 	return n, nil
 }
 
-// Sum appends the Pol1305 hash of the previously
+// Sum appends the Poly1305 hash of the previously
 // processed data to b and returns the resulting slice.
 // It is safe to call this function multiple times.
 func (p *Hash) Sum(b []byte) []byte {
