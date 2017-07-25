@@ -97,7 +97,7 @@ func TestWriteAfterSum(t *testing.T) {
 	}
 }
 
-func TestWrite(t *testing.T) {
+func testWrite(t *testing.T, size int) {
 	var key [32]byte
 	for i := range key {
 		key[i] = byte(i)
@@ -106,7 +106,7 @@ func TestWrite(t *testing.T) {
 	h := New(key)
 
 	var msg1 []byte
-	msg0 := make([]byte, 64)
+	msg0 := make([]byte, size)
 	for i := range msg0 {
 		h.Write(msg0[:i])
 		msg1 = append(msg1, msg0[:i]...)
@@ -120,6 +120,12 @@ func TestWrite(t *testing.T) {
 	}
 }
 
+func TestWrite(t *testing.T) {
+
+	for size := 0; size < 128; size++ {
+		testWrite(t, size)
+	}
+}
 // Benchmarks
 
 func BenchmarkSum_64(b *testing.B)    { benchmarkSum(b, 64) }
