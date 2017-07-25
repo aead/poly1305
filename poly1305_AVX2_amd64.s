@@ -64,6 +64,7 @@ DATA fixPermutation<>+0x78(SB)/4, $6
 DATA fixPermutation<>+0x7c(SB)/4, $7
 GLOBL fixPermutation<>(SB), RODATA, $128
 
+// func initializeAVX2(state *[AVX2Size]byte, key *[32]byte)
 TEXT ·initializeAVX2(SB), $0-16
 	MOVQ state+0(FP), DI
 	MOVQ key+8(FP), SI
@@ -301,7 +302,8 @@ TEXT ·initializeAVX2(SB), $0-16
 
 	RET
 
-TEXT ·updateAVX2(SB), $0-24
+// func updateAVX2(state *[AVX2Size]byte, msg []byte)
+TEXT ·updateAVX2(SB), $0-32
 	MOVQ state+0(FP), DI
 	MOVQ msg+8(FP), SI
 	MOVQ msg_len+16(FP), DX
@@ -815,8 +817,9 @@ DONE:
 	MOVD X4, 320(DI)
 	RET
 
+// func finalizeAVX2(tag *[TagSize]byte, state *[AVX2Size]byte)
 TEXT ·finalizeAVX2(SB), $0-16
-	MOVQ out+0(FP), SI
+	MOVQ tag+0(FP), SI
 	MOVQ state+8(FP), DI
 
 	VZEROUPPER
