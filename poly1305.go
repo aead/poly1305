@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 // Package poly1305 implements Poly1305 one-time message authentication code
-// defined in RFC 7539..
+// defined in RFC 7539.
 //
 // Poly1305 is a fast, one-time authentication function. It is infeasible for an
 // attacker to generate an authenticator for a message without the key.
-// However, a key must only be used for a single message. Authenticating two
+// However, a key must be used only for a single message. Authenticating two
 // different messages with the same key allows an attacker to forge
 // authenticators for other messages with the same key.
 package poly1305 // import "github.com/aead/poly1305"

@@ -18,6 +18,17 @@ func fromHex(s string) []byte {
 	return b
 }
 
+var mult = []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef}
+var sNul = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+var sSet = []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+
+var TagZeroByteMessage_1 = []byte{0x0f, 0x01, 0x23, 0x45, 0x07, 0x88, 0xab, 0xcd, 0x0f, 0x00, 0x23, 0x45, 0x07, 0x88, 0xab, 0xcd}
+var TagZeroByteMessage_2 = []byte{0x0e, 0x01, 0x23, 0x45, 0x07, 0x88, 0xab, 0xcd, 0x0f, 0x00, 0x23, 0x45, 0x07, 0x88, 0xab, 0xcd}
+var TagFirstBitMessage_1 = []byte{0x10, 0x24, 0x68, 0x4c, 0x8f, 0x33, 0x79, 0xdd, 0x0f, 0x23, 0x68, 0x4c, 0x8f, 0x33, 0x79, 0xdd}
+var TagFirstBitMessage_2 = []byte{0x0f, 0x24, 0x68, 0x4c, 0x8f, 0x33, 0x79, 0xdd, 0x0f, 0x23, 0x68, 0x4c, 0x8f, 0x33, 0x79, 0xdd}
+var TagSecndBitMessage_1 = []byte{0x11, 0x47, 0xad, 0x53, 0x17, 0xdf, 0x46, 0xed, 0x0f, 0x46, 0xad, 0x53, 0x17, 0xdf, 0x46, 0xed}
+var TagSecndBitMessage_2 = []byte{0x10, 0x47, 0xad, 0x53, 0x17, 0xdf, 0x46, 0xed, 0x0f, 0x46, 0xad, 0x53, 0x17, 0xdf, 0x46, 0xed}
+
 var vectors = []struct {
 	msg, key, tag []byte
 }{
@@ -36,10 +47,65 @@ var vectors = []struct {
 		[]byte("this is 32-byte key for Poly1305"),
 		[]byte{0xda, 0x84, 0xbc, 0xab, 0x02, 0x67, 0x6c, 0x38, 0xcd, 0xb0, 0x15, 0x60, 0x42, 0x74, 0xc2, 0xaa},
 	},
+	// empty key results in empty tag irrespective of message contents
 	{
-		make([]byte, 2007),
+		make([]byte, 0),
 		make([]byte, 32),
 		make([]byte, 16),
+	},
+	{
+		make([]byte, 1),
+		make([]byte, 32),
+		make([]byte, 16),
+	},
+	{
+		[]byte("Hello world!"),
+		make([]byte, 32),
+		make([]byte, 16),
+	},
+	// zero length message
+	{
+		[]byte{},
+		append(mult, sNul...), // as long as S-part is zero, empty result
+		make([]byte, 16),
+	},
+	{
+		[]byte{},
+		append(mult, sSet...), // when S-part set, get XOR-ed result
+		sSet,
+	},
+	// single zero byte
+	{
+		[]byte{0x00},
+		append(mult, sNul...),
+		TagZeroByteMessage_1,
+	},
+	{
+		[]byte{0x00},
+		append(mult, sSet...),
+		TagZeroByteMessage_2,
+	},
+	// single byte with first bit set
+	{
+		[]byte{0x01},
+		append(mult, sNul...),
+		TagFirstBitMessage_1,
+	},
+	{
+		[]byte{0x01},
+		append(mult, sSet...),
+		TagFirstBitMessage_2,
+	},
+	// single byte with second bit set
+	{
+		[]byte{0x02},
+		append(mult, sNul...),
+		TagSecndBitMessage_1,
+	},
+	{
+		[]byte{0x02},
+		append(mult, sSet...),
+		TagSecndBitMessage_2,
 	},
 	{
 		// This test triggers an edge-case. See https://go-review.googlesource.com/#/c/30101/.
@@ -56,9 +122,9 @@ var vectors = []struct {
 }
 
 func TestVectors(t *testing.T) {
-	var key [32]byte
-
 	for i, v := range vectors {
+		var key [32]byte
+
 		msg := v.msg
 		copy(key[:], v.key)
 
@@ -97,7 +163,7 @@ func TestWriteAfterSum(t *testing.T) {
 	}
 }
 
-func TestWrite(t *testing.T) {
+func testWrite(t *testing.T, size int) {
 	var key [32]byte
 	for i := range key {
 		key[i] = byte(i)
@@ -106,7 +172,7 @@ func TestWrite(t *testing.T) {
 	h := New(key)
 
 	var msg1 []byte
-	msg0 := make([]byte, 64)
+	msg0 := make([]byte, size)
 	for i := range msg0 {
 		h.Write(msg0[:i])
 		msg1 = append(msg1, msg0[:i]...)
@@ -120,6 +186,12 @@ func TestWrite(t *testing.T) {
 	}
 }
 
+func TestWrite(t *testing.T) {
+
+	for size := 0; size < 128; size++ {
+		testWrite(t, size)
+	}
+}
 // Benchmarks
 
 func BenchmarkSum_64(b *testing.B)    { benchmarkSum(b, 64) }
@@ -133,8 +205,14 @@ func BenchmarkWrite_8K(b *testing.B)  { benchmarkWrite(b, 8*1024) }
 
 func benchmarkSum(b *testing.B, size int) {
 	var key [32]byte
+	for i := range key {
+		key[i] = byte(i << 3)
+	}
 
 	msg := make([]byte, size)
+	for i := range msg {
+		msg[i] = byte(i)
+	}
 
 	b.SetBytes(int64(size))
 	b.ResetTimer()
@@ -145,9 +223,15 @@ func benchmarkSum(b *testing.B, size int) {
 
 func benchmarkWrite(b *testing.B, size int) {
 	var key [32]byte
+	for i := range key {
+		key[i] = byte(i << 3)
+	}
 	h := New(key)
 
 	msg := make([]byte, size)
+	for i := range msg {
+		msg[i] = byte(i)
+	}
 
 	b.SetBytes(int64(size))
 	b.ResetTimer()
